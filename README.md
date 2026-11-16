@@ -31,7 +31,7 @@ The whole app is three files: `index.html`, `manifest.json` and `sw.js`, plus `i
 
 ## Data and privacy
 
-ELICIT has no server and sends nothing anywhere. Responses are saved in the browser's local storage on the device you are using. Photo files are not stored by the app and need to be reloaded each session. Audio recordings are held in memory during a session.
+ELICIT has no server and sends nothing anywhere. Responses are saved in the browser's local storage on the device you are using. Photo files are not stored by the app and need to be reloaded each session. Audio recordings are held in memory only: they are lost when the page reloads and are not yet included in the export, so run a separate audio recorder alongside ELICIT.
 
 Because everything lives on one device, **export your data regularly** and back it up according to your project's data management plan and ethics approval. Clearing the browser's data will delete saved responses.
 
