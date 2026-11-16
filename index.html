@@ -1,0 +1,1679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="manifest" href="/manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="ELICIT">
+<link rel="apple-touch-icon" href="/icon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ELICIT — Linguistic Fieldwork App</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f0f0;color:#1a1a1a;min-height:100vh;-webkit-text-size-adjust:100%}
+.hidden{display:none!important}
+button{cursor:pointer;font-family:inherit}
+
+/* TOP BAR */
+.topbar{background:#1a1a1a;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;gap:12px}
+.topbar-left{display:flex;align-items:center;gap:12px}
+.app-title{font-size:16px;font-weight:600;color:#fff;white-space:nowrap}
+.home-btn{padding:7px 13px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#fff;font-size:13px;font-weight:500;display:flex;align-items:center;gap:5px}
+.home-btn:hover{background:rgba(255,255,255,.2)}
+.project-name-badge{font-size:12px;color:#aaa;background:rgba(255,255,255,.08);padding:5px 10px;border-radius:6px}
+.topbar-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.tbtn{padding:7px 13px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#fff;font-size:13px;font-weight:500;display:inline-flex;align-items:center;gap:5px}
+.tbtn:hover{background:rgba(255,255,255,.2)}
+.tbtn.rec{background:#cc0000;border-color:#cc0000}
+.tbtn.rec:hover{background:#aa0000}
+.rec-dot{width:8px;height:8px;border-radius:50%;background:#ff4444;display:none}
+.tbtn.recording .rec-dot{display:inline-block;animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.rec-time{font-size:12px;color:#ff8888;font-variant-numeric:tabular-nums;min-width:36px}
+
+/* ============ HOME SCREEN ============ */
+.home-screen{min-height:calc(100vh - 57px);background:#f0f0f0;padding:32px 24px}
+.home-wrap{max-width:760px;margin:0 auto}
+.home-header{margin-bottom:24px}
+.home-header h1{font-size:26px;font-weight:700;margin-bottom:6px}
+.home-header p{font-size:14px;color:#888}
+.new-project-card{background:#fff;border:2px dashed #d0d0d0;border-radius:14px;padding:24px;text-align:center;cursor:pointer;margin-bottom:24px;transition:.2s}
+.new-project-card:hover{border-color:#1a1a1a;background:#fafafa}
+.new-project-card .plus{font-size:28px;margin-bottom:6px}
+.new-project-card h3{font-size:15px;font-weight:600;margin-bottom:2px}
+.new-project-card p{font-size:12px;color:#999}
+
+.project-grid{display:flex;flex-direction:column;gap:10px}
+.project-card{background:#fff;border:1px solid #e8e8e8;border-radius:12px;padding:16px 18px;display:flex;align-items:center;gap:14px;transition:.15s}
+.project-card:hover{border-color:#ccc;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.project-icon{width:44px;height:44px;border-radius:10px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.project-info{flex:1;min-width:0;cursor:pointer}
+.project-info h3{font-size:15px;font-weight:600;margin-bottom:3px}
+.project-meta{font-size:12px;color:#999;display:flex;gap:10px;flex-wrap:wrap}
+.project-progress{display:flex;gap:4px;margin-top:6px}
+.prog-pill{font-size:11px;padding:2px 8px;border-radius:10px;background:#f5f5f5;color:#888}
+.prog-pill.has-entries{background:#e8f5e9;color:#2e7d32}
+.project-actions{display:flex;gap:6px;flex-shrink:0}
+.icon-btn{width:34px;height:34px;border-radius:8px;border:1px solid #eee;background:#fafafa;display:flex;align-items:center;justify-content:center;font-size:15px;color:#888}
+.icon-btn:hover{background:#f0f0f0}
+.icon-btn.danger:hover{background:#fff0f0;color:#cc0000;border-color:#ffcccc}
+.empty-state{text-align:center;color:#aaa;padding:40px 20px;font-size:14px}
+
+/* ============ NEW PROJECT MODAL ============ */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:#fff;border-radius:16px;padding:24px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;position:relative}
+.modal h2{font-size:18px;font-weight:700;margin-bottom:16px}
+.modal-close{position:absolute;top:16px;right:20px;background:none;border:none;font-size:22px;color:#aaa;line-height:1}
+.modal-close:hover{color:#333}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:12px;color:#888;font-weight:500;margin-bottom:5px}
+.form-group input,.form-group select{width:100%;padding:9px 11px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:14px;font-family:inherit;outline:none;background:#fff}
+.form-group input:focus,.form-group select:focus{border-color:#1a1a1a}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.btn-secondary{padding:9px 18px;border-radius:8px;border:1px solid #ddd;background:#fff;color:#555;font-size:14px;font-weight:500}
+.btn-secondary:hover{background:#f5f5f5}
+.btn-primary{padding:9px 18px;border-radius:8px;border:none;background:#1a1a1a;color:#fff;font-size:14px;font-weight:600}
+.btn-primary:hover{background:#333}
+.btn-danger{padding:9px 18px;border-radius:8px;border:none;background:#cc0000;color:#fff;font-size:14px;font-weight:600}
+.btn-danger:hover{background:#a00}
+.confirm-text{font-size:14px;color:#555;line-height:1.6;margin-bottom:6px}
+.confirm-text strong{color:#1a1a1a}
+.cat-checkbox-list{display:flex;flex-direction:column;gap:6px}
+.cat-checkbox-item{border:1.5px solid #eee;border-radius:8px;overflow:hidden}
+.cat-checkbox-head{display:flex;align-items:center;gap:8px;padding:9px 11px;background:#fafafa;cursor:pointer;font-size:13px;font-weight:600;color:#444}
+.cat-checkbox-head input{accent-color:#1a1a1a;width:16px;height:16px}
+.cat-checkbox-books{padding:6px 11px 9px 34px;display:flex;flex-direction:column;gap:5px;font-size:12px;color:#777}
+.cat-checkbox-books label{display:flex;align-items:center;gap:6px}
+.cat-checkbox-books input{accent-color:#1a56db;width:14px;height:14px}
+
+/* ============ MAIN APP LAYOUT ============ */
+.layout{display:grid;grid-template-columns:200px 1fr 340px;height:calc(100vh - 57px)}
+
+/* SIDEBAR */
+.sidebar{background:#fff;border-right:1px solid #e0e0e0;display:flex;flex-direction:column;height:100%;overflow:hidden}
+.sidebar-top{padding:10px;overflow-y:auto;height:260px;flex:0 0 260px;-webkit-overflow-scrolling:touch}
+.cat-section{margin-bottom:2px}
+.cat-header{width:100%;text-align:left;padding:8px 10px;border-radius:8px;border:none;background:transparent;font-size:12px;color:#999;display:flex;align-items:center;gap:7px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.cat-header:hover{background:#f5f5f5;color:#666}
+.cat-header .chev{margin-left:auto;font-size:10px;transition:transform .15s}
+.cat-header.collapsed .chev{transform:rotate(-90deg)}
+.cat-books{display:flex;flex-direction:column;gap:1px;padding-left:4px;margin-bottom:4px}
+.cat-books.collapsed{display:none}
+.book-btn{width:100%;text-align:left;padding:8px 11px 8px 18px;border-radius:8px;border:none;background:transparent;font-size:13px;color:#555;display:flex;align-items:center;gap:8px;margin-bottom:1px;font-weight:500}
+.book-btn:hover{background:#f5f5f5}
+.book-btn.active{background:#1a1a1a;color:#fff}
+.book-count{margin-left:auto;font-size:11px;background:rgba(0,0,0,.1);padding:1px 6px;border-radius:10px}
+.book-btn.active .book-count{background:rgba(255,255,255,.2)}
+.sidebar-divider{height:1px;background:#f0f0f0;margin:8px 12px}
+.photo-list-wrap{flex:1 1 0%;overflow-y:auto;padding:0 8px 12px;min-height:0;border-top:1px solid #f0f0f0;-webkit-overflow-scrolling:touch}
+.photo-list-label{font-size:10px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:.06em;padding:8px 6px 5px;display:flex;justify-content:space-between;align-items:center}
+.load-more-btn{font-size:10px;color:#1a56db;background:none;border:none;font-weight:600}
+.pitem-row{display:flex;align-items:center;gap:2px}
+.pitem{flex:1;text-align:left;padding:6px 9px;border-radius:6px;border:none;background:transparent;font-size:11px;color:#666;display:flex;align-items:center;gap:6px}
+.pitem:hover{background:#f5f5f5}
+.pitem.active{background:#e8f0fe;color:#1a56db;font-weight:500}
+.pitem-dot{width:7px;height:7px;border-radius:50%;background:#ddd;flex-shrink:0}
+.pitem.done .pitem-dot{background:#22c55e}
+.pitem.active .pitem-dot{background:#1a56db}
+.pitem-del{width:22px;height:22px;border-radius:5px;border:none;background:transparent;color:#ccc;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pitem-del:hover{background:#fff0f0;color:#cc0000}
+.add-photos-btn{margin:8px 6px;padding:8px;border-radius:8px;border:1.5px dashed #d0d0d0;background:#fafafa;font-size:11px;color:#888;text-align:center;width:calc(100% - 12px)}
+.add-photos-btn:hover{border-color:#999;color:#555}
+
+/* PHOTO */
+.photo-panel{background:#111;display:flex;flex-direction:column;overflow:hidden;position:relative}
+.photo-wrap{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.photo-display{max-width:100%;max-height:100%;object-fit:contain}
+.photo-empty{color:#555;text-align:center;padding:40px}
+.photo-empty svg{opacity:.3;margin-bottom:12px}
+.photo-footer{background:rgba(0,0,0,.7);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pnav{width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;font-size:16px;display:flex;align-items:center;justify-content:center}
+.pnav:hover{background:rgba(255,255,255,.25)}
+.pnav:disabled{opacity:.25;cursor:default}
+.photo-meta{text-align:center;color:#fff}
+.photo-meta .fname{font-size:13px;font-weight:500}
+.photo-meta .fcount{font-size:11px;color:#aaa;margin-top:2px}
+
+/* PHOTO-FREE BOOK LAYOUT */
+.nophoto-panel{background:#111;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#666;text-align:center;padding:40px}
+.nophoto-panel .icon{font-size:56px;margin-bottom:14px;opacity:.5}
+.nophoto-panel h3{font-size:16px;color:#aaa;margin-bottom:6px;font-weight:600}
+.nophoto-panel p{font-size:13px;color:#777;max-width:280px;line-height:1.6}
+.nophoto-nav{display:flex;gap:10px;margin-top:18px}
+.nophoto-nav button{padding:8px 18px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:13px;font-weight:500}
+.nophoto-nav button:hover{background:rgba(255,255,255,.15)}
+.nophoto-nav button:disabled{opacity:.3}
+.entry-counter-badge{font-size:12px;color:#999;margin-top:10px}
+
+/* FORM */
+.form-panel{background:#f5f5f5;overflow-y:auto}
+.form-inner{padding:14px;display:flex;flex-direction:column;gap:10px}
+.form-empty{color:#aaa;text-align:center;padding:48px 20px;font-size:14px}
+
+.form-card{background:#fff;border-radius:12px;border:1px solid #e8e8e8;overflow:hidden}
+.card-head{padding:10px 14px;background:#f9f9f9;border-bottom:1px solid #eee;font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;justify-content:space-between}
+.card-body{padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+
+.finput{width:100%;padding:9px 11px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:14px;color:#1a1a1a;background:#fff;font-family:inherit;outline:none;transition:.15s}
+.finput:focus{border-color:#1a1a1a}
+.finput.large{font-size:20px;padding:11px 13px;font-weight:500}
+.ftextarea{width:100%;padding:9px 11px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:13px;color:#1a1a1a;background:#fff;font-family:inherit;outline:none;resize:none;height:80px;line-height:1.6;transition:.15s}
+.ftextarea:focus{border-color:#1a1a1a}
+.flabel{font-size:12px;color:#888;font-weight:500;margin-bottom:4px}
+.bilingual{font-size:11px;color:#aaa;margin-bottom:6px;line-height:1.5;padding:6px 8px;background:#fafafa;border-radius:6px;border-left:3px solid #e0e0e0}
+.bilingual strong{color:#666;font-style:italic}
+
+.radio-group{display:flex;flex-direction:column;gap:5px}
+.ropt{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:8px;border:1.5px solid #eee;background:#fafafa;font-size:13px;color:#333;transition:.1s}
+.ropt:hover{border-color:#ccc;background:#f5f5f5}
+.ropt.selected{border-color:#1a1a1a;background:#f0f0f0;color:#1a1a1a;font-weight:500}
+.ropt input[type=radio]{accent-color:#1a1a1a;width:15px;height:15px}
+
+.cb-group{display:flex;flex-direction:column;gap:5px}
+.cbopt{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:8px;border:1.5px solid #eee;background:#fafafa;font-size:13px;color:#333;transition:.1s}
+.cbopt:hover{border-color:#ccc}
+.cbopt.checked{border-color:#1a56db;background:#e8f0fe;color:#1a56db}
+.cbopt input[type=checkbox]{accent-color:#1a56db;width:15px;height:15px}
+.add-custom-row{display:flex;gap:6px;margin-top:4px}
+.add-custom-input{flex:1;padding:6px 10px;border:1px solid #ddd;border-radius:7px;font-size:12px;font-family:inherit;outline:none;background:#fff}
+.add-custom-btn{padding:6px 12px;border-radius:7px;border:1px solid #ddd;background:#fff;font-size:12px;color:#555}
+.add-custom-btn:hover{background:#f5f5f5}
+
+.audio-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.audio-btn{padding:8px 16px;border-radius:8px;border:1.5px solid #e0e0e0;background:#fff;color:#333;font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px;transition:.15s}
+.audio-btn:hover{border-color:#999}
+.audio-btn.rec{border-color:#cc0000;background:#fff0f0;color:#cc0000}
+.audio-info{font-size:12px;color:#aaa}
+.audio-play-row{display:flex;gap:6px;margin-top:6px}
+.audio-play-btn{padding:5px 12px;border-radius:7px;border:1px solid #ddd;background:#fff;font-size:12px;color:#555;display:flex;align-items:center;gap:4px}
+.audio-play-btn:hover{background:#f5f5f5}
+
+.save-bar{position:sticky;bottom:0;background:#fff;border-top:1px solid #eee;padding:10px 14px;display:flex;gap:8px;justify-content:space-between;align-items:center}
+.save-btn{padding:9px 20px;border-radius:8px;border:none;background:#1a1a1a;color:#fff;font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px}
+.save-btn:hover{background:#333}
+.saved-msg{font-size:12px;color:#1a7a3c;display:flex;align-items:center;gap:4px;opacity:0;transition:.3s}
+.saved-msg.show{opacity:1}
+.delete-entry-btn{padding:9px 16px;border-radius:8px;border:1px solid #ffcccc;background:#fff;color:#cc0000;font-size:13px;font-weight:500}
+.delete-entry-btn:hover{background:#fff0f0}
+
+.starting-q{background:#fffbea;border:1px solid #f5d77e;border-radius:10px;padding:12px 14px;font-size:13px;line-height:1.6}
+.starting-q strong{display:block;font-size:11px;font-weight:700;color:#a07800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+
+/* Q BUILDER MODAL */
+.qmodal{background:#fff;border-radius:20px;padding:24px;width:100%;max-width:680px;max-height:90vh;overflow-y:auto}
+.modal-tabs{display:flex;gap:6px;margin-bottom:16px}
+.mtab{padding:7px 16px;border-radius:8px;border:1px solid #e0e0e0;background:#f5f5f5;color:#666;font-size:13px;font-weight:500}
+.mtab.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.q-list-build{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.qb-item{display:flex;align-items:center;gap:8px;padding:9px 12px;background:#f9f9f9;border-radius:8px;border:1px solid #eee}
+.qb-item-text{flex:1;font-size:13px;color:#333}
+.qb-item-type{font-size:11px;color:#888;background:#ebebeb;padding:2px 8px;border-radius:5px}
+.qb-del{background:none;border:none;color:#ccc;font-size:18px;line-height:1;padding:0 4px}
+.qb-del:hover{color:#cc0000}
+.qb-edit{background:none;border:none;color:#ccc;font-size:14px;line-height:1;padding:0 4px}
+.qb-edit:hover{color:#1a56db}
+.add-q-box{background:#f9f9f9;border:1px solid #eee;border-radius:10px;padding:14px}
+.add-q-box h4{font-size:13px;font-weight:600;color:#555;margin-bottom:10px}
+.add-q-row{display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:8px}
+.aq-input{padding:8px 11px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit;outline:none;background:#fff;width:100%}
+.aq-select{padding:8px 11px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit;outline:none;background:#fff}
+.aq-opts{margin-top:8px}
+.aq-opts-label{font-size:11px;color:#888;margin-bottom:4px}
+.aq-opts-ta{width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:7px;font-size:12px;font-family:inherit;outline:none;height:80px;resize:none;background:#fff}
+.add-q-btn{padding:8px 16px;border-radius:8px;border:none;background:#1a1a1a;color:#fff;font-size:13px;font-weight:500;margin-top:8px}
+.add-q-btn:hover{background:#333}
+
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;z-index:400;opacity:0;transition:.3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <button class="home-btn" onclick="goHome()">&#8962; Home</button>
+    <span class="project-name-badge hidden" id="project-badge"></span>
+  </div>
+  <div class="topbar-right" id="topbar-actions" style="display:none">
+    <span class="rec-time hidden" id="rec-time">0:00</span>
+    <button class="tbtn recording" id="screen-btn" onclick="stopScreenRec()" style="display:none">
+      <div class="rec-dot"></div> Stop Recording
+    </button>
+    <button class="tbtn rec" id="start-rec-btn" onclick="startScreenRec()">&#9679; Record Session</button>
+    <button class="tbtn" onclick="openQBuilder()">&#9881; Questions</button>
+    <button class="tbtn" onclick="exportCSV()">&#8659; Export</button>
+  </div>
+</div>
+
+<!-- ============ HOME SCREEN ============ -->
+<div id="home-screen" class="home-screen">
+  <div class="home-wrap">
+    <div class="home-header">
+      <h1>&#127760; ELICIT</h1>
+      <p>Linguistic fieldwork elicitation — photos, audio, and structured questions for endangered language documentation</p>
+    </div>
+
+    <div class="new-project-card" onclick="openNewProjectModal()">
+      <div class="plus">&#10133;</div>
+      <h3>New Project</h3>
+      <p>Start a new fieldwork session with a speaker</p>
+    </div>
+
+    <div class="project-grid" id="project-grid">
+      <div class="empty-state">No projects yet. Create your first one above.</div>
+    </div>
+  </div>
+</div>
+
+<!-- NEW PROJECT MODAL -->
+<div class="modal-bg hidden" id="new-project-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeNewProjectModal()">&#10005;</button>
+    <h2>&#10133; New Project</h2>
+    <div class="form-group">
+      <label>Project name</label>
+      <input type="text" id="np-name" placeholder="e.g. Session 4 — SP02 — Mandal">
+    </div>
+    <div class="form-group">
+      <label>Target language</label>
+      <input type="text" id="np-language" placeholder="e.g. Garhwali">
+    </div>
+    <div class="form-group">
+      <label>Speaker pseudonym</label>
+      <input type="text" id="np-speaker" placeholder="e.g. SP02">
+    </div>
+    <div class="form-group">
+      <label>Date</label>
+      <input type="date" id="np-date">
+    </div>
+    <div class="form-group">
+      <label>Categories to include</label>
+      <div class="cat-checkbox-list" id="np-categories"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeNewProjectModal()">Cancel</button>
+      <button class="btn-primary" onclick="createProject()">Create Project</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE PROJECT CONFIRM -->
+<div class="modal-bg hidden" id="delete-project-modal">
+  <div class="modal" style="max-width:420px">
+    <h2>Delete Project?</h2>
+    <p class="confirm-text">Are you sure you want to delete <strong id="del-project-name"></strong>? This will permanently remove all photos, responses, and audio recordings for this project. This cannot be undone.</p>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeDeleteProjectModal()">Cancel</button>
+      <button class="btn-danger" onclick="confirmDeleteProject()">Delete Project</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE ENTRY CONFIRM -->
+<div class="modal-bg hidden" id="delete-entry-modal">
+  <div class="modal" style="max-width:420px">
+    <h2>Delete Entry?</h2>
+    <p class="confirm-text">Delete all responses and audio for <strong id="del-entry-name"></strong>? This cannot be undone.</p>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeDeleteEntryModal()">Cancel</button>
+      <button class="btn-danger" onclick="confirmDeleteEntry()">Delete Entry</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE QUESTION CONFIRM -->
+<div class="modal-bg hidden" id="delete-question-modal" style="z-index:300">
+  <div class="modal" style="max-width:420px">
+    <h2>Delete Question?</h2>
+    <p class="confirm-text">Delete <strong id="del-question-name"></strong> from this book's question set? This cannot be undone.</p>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeDeleteQuestionModal()">Cancel</button>
+      <button class="btn-danger" onclick="confirmDeleteQuestion()">Delete Question</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MAIN APP ============ -->
+<div id="main" class="hidden">
+  <div class="layout">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sidebar-top" id="sidebar-categories"></div>
+      <div class="sidebar-divider"></div>
+      <div class="photo-list-wrap" id="photo-list-wrap">
+        <div class="photo-list-label"><span id="entry-list-label">Photos</span></div>
+        <button class="add-photos-btn hidden" id="add-photos-btn" onclick="triggerLoadPhotos()">&#128193; Load / add photos</button>
+        <input type="file" id="photo-file-input" multiple accept="image/*" style="display:none" onchange="addPhotosToBook(this)">
+        <div id="photo-list"></div>
+      </div>
+    </div>
+
+    <!-- PHOTO -->
+    <div class="photo-panel">
+      <div class="photo-wrap">
+        <div class="photo-empty" id="photo-empty">
+          <svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+          <p>Load photos and select one to start</p>
+        </div>
+        <img id="photo-img" class="photo-display hidden" alt="Species photo">
+      </div>
+      <div class="photo-footer">
+        <button class="pnav" id="btn-prev" onclick="prevPhoto()" disabled>&#8592;</button>
+        <div class="photo-meta">
+          <div class="fname" id="photo-fname">—</div>
+          <div class="fcount" id="photo-fcount">—</div>
+        </div>
+        <button class="pnav" id="btn-next" onclick="nextPhoto()">&#8594;</button>
+      </div>
+    </div>
+
+    <!-- FORM -->
+    <div class="form-panel">
+      <div class="form-inner" id="form-inner">
+        <div class="form-empty">Select a photo to start</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Q BUILDER MODAL -->
+<div class="modal-bg hidden" id="q-modal">
+  <div class="qmodal" style="position:relative">
+    <button class="modal-close" onclick="closeQBuilder()">&#10005;</button>
+    <h2>&#9881; Question Builder</h2>
+    <div class="modal-tabs" id="q-modal-tabs" style="flex-wrap:wrap"></div>
+    <div class="q-list-build" id="q-list-build"></div>
+    <div class="add-q-box">
+      <h4 id="aq-heading">Add new question</h4>
+      <div class="add-q-row">
+        <input class="aq-input" id="aq-text" placeholder="Question text (Hindi / Garhwali)">
+        <select class="aq-select" id="aq-type" onchange="toggleOptsArea()">
+          <option value="text">Text</option>
+          <option value="textarea">Long text</option>
+          <option value="radio">Radio</option>
+          <option value="checkbox">Checkboxes</option>
+          <option value="audio">Audio</option>
+        </select>
+      </div>
+      <div id="aq-opts-area" class="aq-opts hidden">
+        <div class="aq-opts-label">Options — one per line</div>
+        <textarea class="aq-opts-ta" id="aq-opts" placeholder="Option 1&#10;Option 2&#10;Option 3"></textarea>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="add-q-btn" id="aq-submit-btn" onclick="addQuestion()">+ Add Question</button>
+        <button class="btn-secondary hidden" id="aq-cancel-btn" onclick="cancelEditQuestion()" style="padding:8px 16px;font-size:13px">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   DATA MODEL
+   projects: { id, name, speaker, date, createdAt,
+               photos: {plants:[],animals:[],birds:[]}  (File objects, not persisted)
+               responses: {plants:{},animals:{},birds:{}}
+               audioBlobs: {plants:{},animals:{},birds:{}} (not persisted across reload)
+               photoNames: {plants:[],animals:[],birds:[]} (persisted)
+             }
+   ============================================================ */
+
+const STORAGE_KEY = 'tek_projects_v1';
+
+let projects = [];
+let currentProjectId = null;
+let pendingDeleteProjectId = null;
+let pendingDeleteEntry = null; // {book, idx}
+
+const APP = {
+  currentBook: 'plants',
+  currentIndex: -1,
+  qTab: 'plants',
+  recStream: null,
+  recMR: null,
+  recSeconds: 0,
+  recInterval: null,
+  audioMRs: {}
+};
+
+const CATEGORIES = {
+  ecolinguistics: {
+    name: 'Ecolinguistics',
+    icon: '&#127757;',
+    books: {
+      plants:  { name: 'Plants',  icon: '&#127807;', photoBased: true },
+      animals: { name: 'Animals', icon: '&#128062;', photoBased: true },
+      birds:   { name: 'Birds',   icon: '&#128038;', photoBased: true },
+    }
+  },
+  kinship: {
+    name: 'Kinship & Social Terms',
+    icon: '&#128106;',
+    books: {
+      family:     { name: 'Family Relations', icon: '&#128106;', photoBased: false },
+      social:     { name: 'Social Roles',     icon: '&#127970;', photoBased: false },
+      lifestages: { name: 'Life Stages',      icon: '&#127873;', photoBased: false },
+    }
+  },
+  body_health: {
+    name: 'Body & Health',
+    icon: '&#129502;',
+    books: {
+      bodyparts: { name: 'Body Parts',         icon: '&#129502;', photoBased: true },
+      illness:   { name: 'Illness & Medicine', icon: '&#128138;', photoBased: false },
+      emotions:  { name: 'Emotions & States',  icon: '&#128546;', photoBased: false },
+    }
+  },
+  material_culture: {
+    name: 'Material Culture',
+    icon: '&#127919;',
+    books: {
+      tools:    { name: 'Tools & Implements',   icon: '&#128296;', photoBased: true },
+      clothing: { name: 'Clothing & Adornment', icon: '&#128086;', photoBased: true },
+      food:     { name: 'Food & Cooking',       icon: '&#127858;', photoBased: true },
+    }
+  },
+  grammar: {
+    name: 'Grammar & Paradigms',
+    icon: '&#128221;',
+    books: {
+      verbs:     { name: 'Verb Paradigms',       icon: '&#128221;', photoBased: false },
+      pronouns:  { name: 'Pronouns & Case',      icon: '&#128100;', photoBased: false },
+      sentences: { name: 'Sentence Elicitation', icon: '&#128172;', photoBased: false },
+    }
+  }
+};
+
+// Flat lookup: book key -> {categoryKey, ...bookInfo}
+const BOOK_INFO = {};
+Object.entries(CATEGORIES).forEach(([catKey, cat])=>{
+  Object.entries(cat.books).forEach(([bookKey, book])=>{
+    BOOK_INFO[bookKey] = {...book, categoryKey: catKey, categoryName: cat.name, bookKey};
+  });
+});
+
+const QS = {
+  plants:[
+    {id:1, garhwali:'yeku gadhwali nau kya chi? / kya yeka hor nau bi wanna?', hindi:'Iska Garhwali naam kya hai? / Kya iske aur bhi naam hote hain?', type:'text', placeholder:'Garhwali naam likhein…', large:true},
+    {id:2, garhwali:'chhota paudha ar badu dau thene yekuno se bwolda?', hindi:'Chhota paudha aur bade ped ko ek hi naam se bolte hain?', type:'radio', opts:['Haan — ek hi naam / Ha — yekuno se','Nahi — alag naam / Na — alag alag se','Pata nahi / Pta ni']},
+    {id:3, garhwali:'ye podha alag alag hissa thne ky bwolda?', hindi:'Es poudhe ke alag alag hisse ko kya bolte hain? (patta, phool, beej, chhal, jad)', type:'textarea', placeholder:'Patta =\nPhool =\nBeej =\nChhal =\nJad ='},
+    {id:4, garhwali:'yu kau milunu? ke jungal ma kathya ench?', hindi:'Ye kahan milta hai? Kis jungle mein? Kitni unchai par?', type:'text', placeholder:'Location / habitat…'},
+    {id:5, garhwali:'yu kathya prakare milini?', hindi:'Ye kitne tarah ka milta hai?', type:'text', placeholder:'Variety / types…'},
+    {id:6, garhwali:'ye paudha ke aas paas kwe kwe janwar oona?', hindi:'Es paudhe ke paas kon kon se janwar aate hain?', type:'text', placeholder:'Animals associated…'},
+    {id:7, garhwali:'yu ky kaam oonu?', hindi:'Ye kya kaam aata hai?', type:'checkbox', opts:['Khane ke liye / Food','Dawai ke liye / Medicine','Lakdi / Fuelwood','Janwar ka chara / Fodder','Pooja / Ritual','Imarat / Timber','Reshe / Fibre craft','Naya aaya / Invasive']},
+    {id:8, garhwali:'ke mosam ma oona? fool kba ona? fal kba lagana?', hindi:'Kis mausam mein aata hai? Phool kab aate hain? Phal kab lagte hain?', type:'text', placeholder:'Season / flowering / fruiting…'},
+    {id:9, garhwali:'ky kwe kahani chho yeka bara man?', hindi:'Kya koi kahani hai iske baare mein?', type:'textarea', placeholder:'Kahani / story…'},
+    {id:10, garhwali:'Speaker ki awaaz — naam Garhwali mein boliye', hindi:'Audio — speaker pronounces the Garhwali name', type:'audio'},
+    {id:11, garhwali:'Hor kuchh — notes', hindi:'Additional notes — ecology, cultural use, follow-up', type:'textarea', placeholder:'Notes…'},
+  ],
+  animals:[
+    {id:1, garhwali:'ku wwu janwar chi?', hindi:'Konsa janwar hai?', type:'text', placeholder:'Garhwali naam…', large:true},
+    {id:2, garhwali:'kau milunu?', hindi:'Kahan milta hai?', type:'text', placeholder:'Forest / field / stream / village…'},
+    {id:3, garhwali:'kya khanu?', hindi:'Kya khata hai?', type:'text', placeholder:'Diet…'},
+    {id:4, garhwali:'kwe kahani? / kwe kahani mah jikar?', hindi:'Koi kahani? / Koi kahani mein jikar?', type:'textarea', placeholder:'Kahani / story…'},
+    {id:5, garhwali:'akar / rang?', hindi:'Aakar / rang?', type:'text', placeholder:'Size / colour description…'},
+    {id:6, garhwali:'kwe hor nau janwaro?', hindi:'Koi aur naam janwar ka?', type:'text', placeholder:'Alternate / variant names…'},
+    {id:7, garhwali:'nar ar mado alag alag nau chho?', hindi:'Nar aur mada ka alag alag naam hai?', type:'radio', opts:['Haan — alag naam / Ha','Nahi — ek naam / Na','Pata nahi / Pta ni']},
+    {id:8, garhwali:'teka baccha thane kya bwolda?', hindi:'Uske bachhe ko kya bolte hain?', type:'text', placeholder:'Name for young one…'},
+    {id:9, garhwali:'kya wu pelli jyada dikhwanu chhe? ab kam ronu?', hindi:'Kya ye pehle zyada dikhta tha? Ab kam rehta hai?', type:'radio', opts:['Haan — pehle zyada tha / Ha — pelli jyada chhe','Ab bhi utna hi hai / Ab vi tatha chi','Nahi pata / Pta ni','Ab zyada ho gaya / Ab jyada wenu']},
+    {id:10, garhwali:'kya yu fwangda mah unu? agar jawab oh chi ta kya kordu?', hindi:'Kya ye khet mein aata hai? Agar haan toh kya karta hai?', type:'radio', opts:['Haan — aata hai / Ha — onu','Nahi aata / Na onu','Kabhi kabhi / Thoda']},
+    {id:11, garhwali:'janwar se kane bachda?', hindi:'Janwar se kaise bachte hain?', type:'textarea', placeholder:'Protective practices…'},
+    {id:12, garhwali:'yeka awaz thane gadhwai ma kya bwolda?', hindi:'Iski awaaz ko Garhwali mein kya bolte hain?', type:'text', placeholder:'Sound / call name in Garhwali…'},
+    {id:13, garhwali:'yeku dikhyan subh chi oo ki asubh?', hindi:'Kya iska dikhna shubh hai ya ashubh?', type:'radio', opts:['Shubh / Subh','Ashubh / Asubh','Na shubh na ashubh / Kujh ni','Pata nahi / Pta ni']},
+    {id:14, garhwali:'kya yeku kwe puronu gadhwai nau chho?', hindi:'Kya iska koi purana Garhwali naam hai?', type:'text', placeholder:'Old / forgotten Garhwali name…'},
+    {id:15, garhwali:'Speaker ki awaaz — naam Garhwali mein boliye', hindi:'Audio — speaker pronounces the Garhwali name', type:'audio'},
+    {id:16, garhwali:'Hor kuchh — notes', hindi:'Additional notes / follow-up', type:'textarea', placeholder:'Notes…'},
+  ],
+  birds:[
+    {id:0, garhwali:'STARTING QUESTION — ke pwathla se pta chaldu ki barkha hoon wyi chi?', hindi:'Shuru ka sawaal — Kis panchhi se pata chalti hai ki baarish aane wali hai?', type:'textarea', placeholder:'Opening response — speaker can name multiple birds…', starting:true},
+    {id:1, garhwali:'ye pwothlo gadhawai ma nau ky chi?', hindi:'Iss panchhi ka Garhwali mein naam kya hai?', type:'text', placeholder:'Garhwali naam…', large:true},
+    {id:2, garhwali:'nar ar mado alag alag nau chho ky?', hindi:'Nar aur mada ka alag alag naam hai kya?', type:'radio', opts:['Haan — alag naam / Ha','Nahi — ek naam / Na','Pata nahi / Pta ni']},
+    {id:3, garhwali:'yeka bacha thne ky bwolda?', hindi:'Iske bachhe ko kya bolte hain?', type:'text', placeholder:'Name for chick…'},
+    {id:4, garhwali:'yeka kwe hor nau bi chi?', hindi:'Iske aur bhi koi naam hai kya?', type:'text', placeholder:'Alternate / variant names…'},
+    {id:5, garhwali:'kathya prkara wanna?', hindi:'Kitne tarah ke hote hain?', type:'text', placeholder:'Varieties / types…'},
+    {id:6, garhwali:'yeki awaj kne chi?', hindi:'Iske awaaz kaisi hai?', type:'textarea', placeholder:'Sound description / imitation in Garhwali…'},
+    {id:7, garhwali:'yu kakh mildu?', hindi:'Ye kahan milta hai?', type:'text', placeholder:'Habitat / location…'},
+    {id:8, garhwali:'sal bhr ronu ya kuchh mena lye oonu?', hindi:'Saal bhar rehta hai ya kuch mahine ke liye aata hai?', type:'radio', opts:['Saal bhar / Resident','Kuch mahine / Seasonal visitor','Pata nahi / Pta ni']},
+    {id:9, garhwali:'yeku ghosla kapha wnnu?', hindi:'Iska ghosla kahan pe hota hai?', type:'text', placeholder:'Nesting location…'},
+    {id:10, garhwali:'ky khanu?', hindi:'Kya khata hai?', type:'text', placeholder:'Diet…'},
+    {id:11, garhwali:'ky yi pelli jyada chhe?', hindi:'Kya ye pehle zyada the?', type:'radio', opts:['Haan pehle zyada tha / Ha pelli jyada chhe','Ab bhi utna hi / Ab vi tatha','Ab kam ho gaya / Ab kam wenu','Pata nahi / Pta ni']},
+    {id:12, garhwali:'subh ya asubh wannu?', hindi:'Subh ya ashubh hota hai?', type:'radio', opts:['Shubh / Subh','Ashubh / Asubh','Dono nahi / Kujh ni','Pata nahi / Pta ni']},
+    {id:13, garhwali:'pwathle kwe kahani?', hindi:'Panchhi ko leke koi kahani?', type:'textarea', placeholder:'Kahani / folklore…'},
+    {id:14, garhwali:'Speaker ki awaaz — naam Garhwali mein boliye', hindi:'Audio — speaker pronounces the Garhwali name', type:'audio'},
+    {id:15, garhwali:'Hor kuchh — notes', hindi:'Additional notes / follow-up', type:'textarea', placeholder:'Notes…'},
+  ],
+
+  /* ============ KINSHIP & SOCIAL TERMS ============ */
+
+  family: [
+    {id:1, garhwali:'[Target language] mein iska kya naam hai?', hindi:'What is this relation called in the target language?', type:'text', placeholder:'Target language term…', large:true},
+    {id:2, garhwali:'Kya umar/birth order ke hisaab se naam alag hota hai?', hindi:'Does the term differ by age or birth order (elder/younger)?', type:'radio', opts:['Haan / Yes','Nahi / No','Pata nahi / Not sure']},
+    {id:3, garhwali:'Kya pati/patni ke paksh se naam alag hota hai? (maternal vs paternal)', hindi:'Does the term differ by maternal vs paternal side?', type:'radio', opts:['Haan / Yes','Nahi / No','Pata nahi / Not sure']},
+    {id:4, garhwali:'Address term — is rishtedaar ko seedha kaise bulate hain?', hindi:'Address term — how is this relative addressed directly?', type:'text', placeholder:'Direct address form…'},
+    {id:5, garhwali:'Reference term — baat karte waqt is rishtedaar ko kaise refer karte hain?', hindi:'Reference term — how is this relative referred to in conversation?', type:'text', placeholder:'Reference form…'},
+    {id:6, garhwali:'Kya is rishte se related koi khaas zimmedari ya pratha hai?', hindi:'Any special role, duty, or custom associated with this relation?', type:'textarea', placeholder:'Cultural notes…'},
+    {id:7, garhwali:'Is term ka istemal/kaam', hindi:'Usage / domain', type:'checkbox', opts:['Roz ka istemal / Everyday use','Sirf rasmon mein / Ritual contexts only','Purani peedhi mein / Older generation only','Naye log alag bolte hain / Younger generation uses different term']},
+    {id:8, garhwali:'Speaker ki awaaz — term bolen', hindi:'Audio — speaker pronounces the term', type:'audio'},
+    {id:9, garhwali:'Hor kuchh — notes', hindi:'Additional notes', type:'textarea', placeholder:'Notes…'},
+  ],
+
+  social: [
+    {id:1, garhwali:'[Target language] mein iska kya naam hai?', hindi:'What is this social role called in the target language?', type:'text', placeholder:'Target language term…', large:true},
+    {id:2, garhwali:'Yeh role gaon/samaj mein kya karta hai?', hindi:'What does this role/person do in the village or community?', type:'textarea', placeholder:'Description of role…'},
+    {id:3, garhwali:'Kya yeh role aaj bhi maujood hai?', hindi:'Does this role still exist today?', type:'radio', opts:['Haan, aaj bhi hai / Still exists','Nahi, ab nahi hai / No longer exists','Badal gaya hai / Has changed']},
+    {id:4, garhwali:'Is role ko kaun nibhata hai — koi shart hai? (umar, gender, jaati)', hindi:'Who fills this role — any requirements? (age, gender, caste)', type:'textarea', placeholder:'Eligibility / requirements…'},
+    {id:5, garhwali:'Kya is role se judi koi kahani ya parampara hai?', hindi:'Any story or tradition associated with this role?', type:'textarea', placeholder:'Kahani / tradition…'},
+    {id:6, garhwali:'Speaker ki awaaz — term bolen', hindi:'Audio — speaker pronounces the term', type:'audio'},
+    {id:7, garhwali:'Hor kuchh — notes', hindi:'Additional notes', type:'textarea', placeholder:'Notes…'},
+  ],
+
+  lifestages: [
+    {id:1, garhwali:'[Target language] mein iska kya naam hai?', hindi:'What is this life stage called in the target language?', type:'text', placeholder:'Target language term…', large:true},
+    {id:2, garhwali:'Yeh stage kis umar mein hota hai?', hindi:'What age range does this stage cover?', type:'text', placeholder:'Age range…'},
+    {id:3, garhwali:'Kya is stage se judi koi rasm/samaaroh hoti hai?', hindi:'Is there a ceremony or ritual associated with this stage?', type:'textarea', placeholder:'Ceremony details…'},
+    {id:4, garhwali:'Ladka aur ladki ke liye alag naam hai kya?', hindi:'Different terms for male vs female?', type:'radio', opts:['Haan — alag / Yes — different','Nahi — ek hi / No — same term','Pata nahi / Not sure']},
+    {id:5, garhwali:'Kya is stage ke baare mein koi kahawat ya kahani hai?', hindi:'Any proverb or story about this life stage?', type:'textarea', placeholder:'Kahani / proverb…'},
+    {id:6, garhwali:'Speaker ki awaaz — term bolen', hindi:'Audio — speaker pronounces the term', type:'audio'},
+    {id:7, garhwali:'Hor kuchh — notes', hindi:'Additional notes', type:'textarea', placeholder:'Notes…'},
+  ],
+
+  /* ============ BODY & HEALTH ============ */
+
+  bodyparts: [
+    {id:1, garhwali:'[Target language] mein iska kya naam hai?', hindi:'What is this body part called in the target language?', type:'text', placeholder:'Target language term…', large:true},
+    {id:2, garhwali:'Kya iske aur bhi naam hain (sammanjanak/avaupcharik)?', hindi:'Any other names (formal/informal/euphemistic)?', type:'text', placeholder:'Alternate terms…'},
+    {id:3, garhwali:'Kya iske liye alag verb/expression hai (e.g. dard, harkat)?', hindi:'Any special verbs/expressions associated with this body part (e.g. pain, movement)?', type:'textarea', placeholder:'Associated verbs/expressions…'},
+    {id:4, garhwali:'Kya yeh kisi muhaavare/kahawat mein aata hai?', hindi:'Does this body part appear in any idiom or proverb?', type:'textarea', placeholder:'Idiom / proverb…'},
+    {id:5, garhwali:'Body part ka category', hindi:'Body part category', type:'checkbox', opts:['Sir / Head','Dhad / Torso','Haath-paon / Limbs','Andar ke ang / Internal organs','Indriyan / Sensory organs']},
+    {id:6, garhwali:'Speaker ki awaaz — term bolen', hindi:'Audio — speaker pronounces the term', type:'audio'},
+    {id:7, garhwali:'Hor kuchh — notes', hindi:'Additional notes', type:'textarea', placeholder:'Notes…'},
+  ],
+
+  illness: [
+    {id:1, garhwali:'[Target language] mein iska kya naam hai?', hindi:'What is this illness/condition called in the target language?', type:'text', placeholder:'Target language term…', large:true},
+    {id:2, garhwali:'Iske lakshan kya hain?', hindi:'What are the symptoms?', type:'textarea', placeholder:'Symptoms…'},
+    {id:3, garhwali:'Iska ilaaj kaise karte hain — gharelu ya parantik upchar?', hindi:'How is it treated — home remedy or traditional medicine?', type:'textarea', placeholder:'Treatment / remedy…'},
+    {id:4, garhwali:'Kya is bimari ka karan kuch khaas maana jaata hai (jadu-tona, mausam, khana)?', hindi:'Is the cause attributed to anything specific (supernatural, weather, food)?', type:'textarea', placeholder:'Believed cause…'},
+    {id:5, garhwali:'Kya iske liye koi pooja/upay hai?', hindi:'Any ritual or remedy associated with this illness?', type:'textarea', placeholder:'Ritual / remedy…'},
+    {id:6, garhwali:'Speaker ki awaaz — term bolen', hindi:'Audio — speaker pronounces the term', type:'audio'},
+    {id:7, garhwali:'Hor kuchh — notes', hindi:'Additional notes', type:'textarea', placeholder:'Notes…'},
+  ],
+
+  emotions: [
+    {id:1, garhwali:'[Target language] mein iska kya naam hai?', hindi:'What is this emotion/state called in the target language?', type:'text', placeholder:'Target language term…', large:true},
+    {id:2, garhwali:'Yeh emotion kis sandarbh mein istemal hota hai?', hindi:'In what context is this emotion/state used?', type:'textarea', placeholder:'Usage context…'},
+    {id:3, garhwali:'Kya iske liye koi expression/gesture/muhaavara hai?', hindi:'Any associated expression, gesture, or idiom?', type:'textarea', placeholder:'Expression / idiom…'},
+    {id:4, garhwali:'Kya yeh sharir ke kisi hisse se juda hai? (e.g. dil, jigar)', hindi:'Is this emotion associated with a body part? (e.g. heart, liver)', type:'text', placeholder:'Associated body part…'},
+    {id:5, garhwali:'Speaker ki awaaz — term bolen', hindi:'Audio — speaker pronounces the term', type:'audio'},
+    {id:6, garhwali:'Hor kuchh — notes', hindi:'Additional notes', type:'textarea', placeholder:'Notes…'},
+  ],
+
+  /* ============ MATERIAL CULTURE ============ */
+
+  tools: [
+    {id:1, garhwali:'[Target language] mein iska kya naam hai?', hindi:'What is this tool called in the target language?', type:'text', placeholder:'Target language term…', large:true},
+    {id:2, garhwali:'Yeh kis kaam ke liye istemal hota hai?', hindi:'What is it used for?', type:'textarea', placeholder:'Use / function…'},
+    {id:3, garhwali:'Kis cheez se banta hai?', hindi:'What is it made from?', type:'text', placeholder:'Material(s)…'},
+    {id:4, garhwali:'Kaun istemal karta hai — sab log ya khaas log?', hindi:'Who uses it — everyone or specific people?', type:'text', placeholder:'Users…'},
+    {id:5, garhwali:'Kya yeh ab bhi istemal hota hai ya purana ho gaya?', hindi:'Is it still in use, or has it become obsolete?', type:'radio', opts:['Aaj bhi istemal / Still used','Kam istemal / Used less now','Ab nahi / No longer used']},
+    {id:6, garhwali:'Speaker ki awaaz — term bolen', hindi:'Audio — speaker pronounces the term', type:'audio'},
+    {id:7, garhwali:'Hor kuchh — notes', hindi:'Additional notes', type:'textarea', placeholder:'Notes…'},
+  ],
+
+  clothing: [
+    {id:1, garhwali:'[Target language] mein iska kya naam hai?', hindi:'What is this clothing/adornment item called in the target language?', type:'text', placeholder:'Target language term…', large:true},
+    {id:2, garhwali:'Kaun pehenta hai — mard, mahila, ya dono?', hindi:'Who wears it — men, women, or both?', type:'radio', opts:['Mard / Men','Mahila / Women','Dono / Both','Bachhe / Children']},
+    {id:3, garhwali:'Kis avsar par pehente hain — roz ya khaas mauka?', hindi:'When is it worn — everyday or special occasions?', type:'textarea', placeholder:'Occasion / context…'},
+    {id:4, garhwali:'Kis cheez se banta hai?', hindi:'What is it made from?', type:'text', placeholder:'Material(s)…'},
+    {id:5, garhwali:'Kya iska koi sanskritik/dharmik mahatva hai?', hindi:'Any cultural or religious significance?', type:'textarea', placeholder:'Significance…'},
+    {id:6, garhwali:'Speaker ki awaaz — term bolen', hindi:'Audio — speaker pronounces the term', type:'audio'},
+    {id:7, garhwali:'Hor kuchh — notes', hindi:'Additional notes', type:'textarea', placeholder:'Notes…'},
+  ],
+
+  food: [
+    {id:1, garhwali:'[Target language] mein iska kya naam hai?', hindi:'What is this food/dish called in the target language?', type:'text', placeholder:'Target language term…', large:true},
+    {id:2, garhwali:'Kaise banaya jaata hai?', hindi:'How is it prepared?', type:'textarea', placeholder:'Preparation method…'},
+    {id:3, garhwali:'Kis avsar par banaya/khaaya jaata hai?', hindi:'When is it made/eaten — everyday or special occasion?', type:'textarea', placeholder:'Occasion / context…'},
+    {id:4, garhwali:'Kya iske ingredients sthaaniya hain ya bahar se aate hain?', hindi:'Are the ingredients local or sourced from outside?', type:'radio', opts:['Sthaaniya / Local','Bahar se / From outside','Mixed']},
+    {id:5, garhwali:'Kya is khane se judi koi kahani/parampara hai?', hindi:'Any story or tradition associated with this food?', type:'textarea', placeholder:'Kahani / tradition…'},
+    {id:6, garhwali:'Speaker ki awaaz — term bolen', hindi:'Audio — speaker pronounces the term', type:'audio'},
+    {id:7, garhwali:'Hor kuchh — notes', hindi:'Additional notes', type:'textarea', placeholder:'Notes…'},
+  ],
+
+  /* ============ GRAMMAR & PARADIGMS ============ */
+
+  verbs: [
+    {id:1, garhwali:'Prompt sentence (contact language) — yahan likhein', hindi:'Prompt sentence in contact language (e.g. Hindi)', type:'text', placeholder:'e.g. Main khana kha raha hoon…', large:true},
+    {id:2, garhwali:'Target language mein tarjuma', hindi:'Translation in target language', type:'text', placeholder:'Target language translation…', large:true},
+    {id:3, garhwali:'Tense / Aspect / Mood', hindi:'Tense / Aspect / Mood', type:'radio', opts:['Present / Vartamaan','Past / Bhoot','Future / Bhavishya','Habitual / Aadat','Progressive / Jaari','Perfect / Poorn','Imperative / Aadesh','Conditional / Sambhavna']},
+    {id:4, garhwali:'Person / Number', hindi:'Person / Number', type:'radio', opts:['1SG','2SG','3SG','1PL','2PL','3PL']},
+    {id:5, garhwali:'Gender agreement (agar laagu ho)', hindi:'Gender agreement (if applicable)', type:'radio', opts:['Masculine','Feminine','Neuter / N/A']},
+    {id:6, garhwali:'Polarity', hindi:'Polarity', type:'radio', opts:['Affirmative / Sakaarmak','Negative / Nakaarmak']},
+    {id:7, garhwali:'Transitivity', hindi:'Transitivity', type:'radio', opts:['Transitive / Sakarmak','Intransitive / Akarmak']},
+    {id:8, garhwali:'Speaker ki awaaz — vaakya bolen', hindi:'Audio — speaker says the sentence', type:'audio'},
+    {id:9, garhwali:'Morphological notes — root, suffixes, irregularities', hindi:'Morphological notes — root, suffixes, irregularities', type:'textarea', placeholder:'Notes on verb structure…'},
+  ],
+
+  pronouns: [
+    {id:1, garhwali:'Prompt sentence (contact language) — yahan likhein', hindi:'Prompt sentence in contact language', type:'text', placeholder:'e.g. Maine usse kitaab di…', large:true},
+    {id:2, garhwali:'Target language mein tarjuma', hindi:'Translation in target language', type:'text', placeholder:'Target language translation…', large:true},
+    {id:3, garhwali:'Pronoun person', hindi:'Pronoun person', type:'radio', opts:['1SG (I/me)','2SG informal (you)','2SG honorific (you)','3SG (he/she/it)','1PL (we)','2PL (you-all)','3PL (they)']},
+    {id:4, garhwali:'Case marking', hindi:'Case marking', type:'radio', opts:['Nominative','Ergative','Dative','Genitive','Accusative','Instrumental','Locative','Other']},
+    {id:5, garhwali:'Honorific level', hindi:'Honorific level', type:'radio', opts:['Intimate / tu-equivalent','Familiar / tum-equivalent','Formal / aap-equivalent','No distinction']},
+    {id:6, garhwali:'Speaker ki awaaz — vaakya bolen', hindi:'Audio — speaker says the sentence', type:'audio'},
+    {id:7, garhwali:'Morphological notes — mergers, irregular forms', hindi:'Morphological notes — mergers, irregular forms', type:'textarea', placeholder:'Notes on pronoun structure…'},
+  ],
+
+  sentences: [
+    {id:1, garhwali:'Prompt sentence (contact language) — yahan likhein', hindi:'Prompt sentence in contact language', type:'text', placeholder:'e.g. Yeh ped bahut purana hai…', large:true},
+    {id:2, garhwali:'Target language mein tarjuma', hindi:'Translation in target language', type:'text', placeholder:'Target language translation…', large:true},
+    {id:3, garhwali:'Sentence type', hindi:'Sentence type', type:'radio', opts:['Statement / Vaktavya','Question / Prashn','Command / Aadesh','Exclamation / Vismayadibodhak','Conditional / Sambhavna']},
+    {id:4, garhwali:'Word order notes — kya target language mein order alag hai?', hindi:'Word order notes — does the target language order differ?', type:'textarea', placeholder:'Word order observations…'},
+    {id:5, garhwali:'Speaker ki awaaz — vaakya bolen', hindi:'Audio — speaker says the sentence', type:'audio'},
+    {id:6, garhwali:'Hor kuchh — notes', hindi:'Additional notes', type:'textarea', placeholder:'Notes…'},
+  ],
+
+};
+
+/* ============================================================
+   PERSISTENCE (localStorage — photo files themselves can't be
+   persisted, but responses/metadata/photo NAMES can)
+   ============================================================ */
+
+function allBookKeys(){
+  return Object.keys(BOOK_INFO);
+}
+
+function emptyBookMap(initVal){
+  const m = {};
+  allBookKeys().forEach(k=> m[k] = (typeof initVal==='function') ? initVal() : initVal);
+  return m;
+}
+
+function loadProjects(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) projects = JSON.parse(raw);
+  }catch(e){ projects = []; }
+  projects.forEach(p=>{
+    if(!p.photos) p.photos = emptyBookMap(()=>[]);
+    if(!p.responses) p.responses = emptyBookMap(()=>({}));
+    if(!p.audioBlobs) p.audioBlobs = emptyBookMap(()=>({}));
+    if(!p.photoNames) p.photoNames = emptyBookMap(()=>[]);
+    if(!p.categories) p.categories = Object.keys(CATEGORIES); // default: all
+    if(!p.books) p.books = allBookKeys(); // default: all books
+    if(!p.language) p.language = '';
+    // backfill any missing book keys (for older saved projects / new books added later)
+    allBookKeys().forEach(k=>{
+      if(!p.photos[k]) p.photos[k] = [];
+      if(!p.responses[k]) p.responses[k] = {};
+      if(!p.audioBlobs[k]) p.audioBlobs[k] = {};
+      if(!p.photoNames[k]) p.photoNames[k] = [];
+    });
+  });
+}
+
+function saveProjects(){
+  // Strip non-serializable data (File objects, Blobs) before saving
+  const serializable = projects.map(p=>({
+    id:p.id, name:p.name, speaker:p.speaker, date:p.date, createdAt:p.createdAt,
+    language:p.language, categories:p.categories, books:p.books,
+    responses:p.responses, photoNames:p.photoNames
+  }));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(serializable));
+}
+
+/* ============================================================
+   HOME SCREEN
+   ============================================================ */
+
+function goHome(){
+  saveResponse();
+  document.getElementById('home-screen').classList.remove('hidden');
+  document.getElementById('main').classList.add('hidden');
+  document.getElementById('topbar-actions').style.display = 'none';
+  document.getElementById('project-badge').classList.add('hidden');
+  currentProjectId = null;
+  renderProjectGrid();
+}
+
+function renderProjectGrid(){
+  const grid = document.getElementById('project-grid');
+  if(projects.length === 0){
+    grid.innerHTML = '<div class="empty-state">No projects yet. Create your first one above.</div>';
+    return;
+  }
+  grid.innerHTML = '';
+  projects.slice().reverse().forEach(p=>{
+    const projBooks = (p.books && p.books.length) ? p.books : allBookKeys();
+    const totalEntries = projBooks.reduce((sum,b)=>{
+      return sum + Object.values(p.responses[b]||{}).filter(r=>r && Object.keys(r).some(k=>{
+        const v = r[k];
+        return v && (typeof v==='string'?v.trim():(Array.isArray(v)?v.length:false));
+      })).length;
+    },0);
+    const pills = projBooks.map(b=>bookPill(p,b,BOOK_INFO[b]?BOOK_INFO[b].icon:'&#128203;')).join('');
+    const card = document.createElement('div');
+    card.className = 'project-card';
+    card.innerHTML = `
+      <div class="project-icon">&#128203;</div>
+      <div class="project-info" onclick="openProject('${p.id}')">
+        <h3>${escapeHtml(p.name)}</h3>
+        <div class="project-meta">
+          ${p.language?'<span>&#127760; '+escapeHtml(p.language)+'</span>':''}
+          <span>&#128100; ${escapeHtml(p.speaker||'—')}</span>
+          <span>&#128197; ${p.date||'—'}</span>
+          <span>${totalEntries} entries</span>
+        </div>
+        <div class="project-progress">${pills}</div>
+      </div>
+      <div class="project-actions">
+        <button class="icon-btn danger" onclick="openDeleteProjectModal('${p.id}')" title="Delete project">&#128465;</button>
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+function bookPill(p, book, icon){
+  const n = Object.values(p.responses[book]||{}).filter(r=>r && Object.keys(r).some(k=>{
+    const v = r[k];
+    return v && (typeof v==='string'?v.trim():(Array.isArray(v)?v.length:false));
+  })).length;
+  return `<span class="prog-pill${n>0?' has-entries':''}">${icon} ${n}</span>`;
+}
+
+function escapeHtml(s){
+  return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// Ecolinguistics books carry Garhwali-specific labels (your original dissertation data);
+// other categories use generic Target/Contact language labels.
+const ECOLING_BOOKS = new Set(['plants','animals','birds']);
+function bilingualLabels(book, q){
+  if(ECOLING_BOOKS.has(book)){
+    return `<strong>Garhwali:</strong> ${escapeHtml(q.garhwali)}<br><strong>Hindi:</strong> ${escapeHtml(q.hindi)}`;
+  }
+  return `<strong>Target language:</strong> ${escapeHtml(q.garhwali)}<br><strong>Contact language:</strong> ${escapeHtml(q.hindi)}`;
+}
+
+/* NEW PROJECT MODAL */
+function openNewProjectModal(){
+  document.getElementById('np-name').value = '';
+  document.getElementById('np-language').value = '';
+  document.getElementById('np-speaker').value = '';
+  document.getElementById('np-date').value = new Date().toISOString().slice(0,10);
+  renderCategoryCheckboxes();
+  document.getElementById('new-project-modal').classList.remove('hidden');
+}
+function closeNewProjectModal(){
+  document.getElementById('new-project-modal').classList.add('hidden');
+}
+
+function renderCategoryCheckboxes(){
+  const wrap = document.getElementById('np-categories');
+  wrap.innerHTML = '';
+  Object.entries(CATEGORIES).forEach(([catKey, cat])=>{
+    const item = document.createElement('div');
+    item.className = 'cat-checkbox-item';
+    const bookCbs = Object.entries(cat.books).map(([bookKey,book])=>{
+      return `<label><input type="checkbox" class="np-book-cb" data-cat="${catKey}" data-book="${bookKey}" checked> ${book.icon} ${escapeHtml(book.name)}</label>`;
+    }).join('');
+    item.innerHTML = `
+      <div class="cat-checkbox-head">
+        <input type="checkbox" class="np-cat-cb" data-cat="${catKey}" checked onchange="toggleCatBooks('${catKey}',this.checked)">
+        <span>${cat.icon} ${escapeHtml(cat.name)}</span>
+      </div>
+      <div class="cat-checkbox-books">${bookCbs}</div>`;
+    wrap.appendChild(item);
+  });
+}
+
+function toggleCatBooks(catKey, checked){
+  document.querySelectorAll(`.np-book-cb[data-cat="${catKey}"]`).forEach(cb=>cb.checked=checked);
+}
+
+function createProject(){
+  const name = document.getElementById('np-name').value.trim();
+  const language = document.getElementById('np-language').value.trim();
+  const speaker = document.getElementById('np-speaker').value.trim();
+  const date = document.getElementById('np-date').value;
+  if(!name){ showToast('Please enter a project name'); return; }
+
+  const selectedBooks = [...document.querySelectorAll('.np-book-cb:checked')].map(cb=>cb.dataset.book);
+  const selectedCats = [...new Set([...document.querySelectorAll('.np-cat-cb:checked')].map(cb=>cb.dataset.cat))];
+  if(selectedBooks.length===0){ showToast('Please select at least one category'); return; }
+
+  const p = {
+    id: 'proj_'+Date.now(),
+    name, language, speaker, date,
+    createdAt: new Date().toISOString(),
+    categories: selectedCats,
+    books: selectedBooks,
+    photos: emptyBookMap(()=>[]),
+    responses: emptyBookMap(()=>({})),
+    audioBlobs: emptyBookMap(()=>({})),
+    photoNames: emptyBookMap(()=>[])
+  };
+  projects.push(p);
+  saveProjects();
+  closeNewProjectModal();
+  openProject(p.id);
+}
+
+/* DELETE PROJECT */
+function openDeleteProjectModal(id){
+  pendingDeleteProjectId = id;
+  const p = projects.find(x=>x.id===id);
+  document.getElementById('del-project-name').textContent = p ? p.name : '';
+  document.getElementById('delete-project-modal').classList.remove('hidden');
+}
+function closeDeleteProjectModal(){
+  document.getElementById('delete-project-modal').classList.add('hidden');
+  pendingDeleteProjectId = null;
+}
+function confirmDeleteProject(){
+  projects = projects.filter(p=>p.id!==pendingDeleteProjectId);
+  saveProjects();
+  closeDeleteProjectModal();
+  renderProjectGrid();
+  showToast('Project deleted');
+}
+
+/* OPEN PROJECT */
+function openProject(id){
+  saveResponse();
+  currentProjectId = id;
+  const p = projects.find(x=>x.id===id);
+  document.getElementById('home-screen').classList.add('hidden');
+  document.getElementById('main').classList.remove('hidden');
+  document.getElementById('topbar-actions').style.display = 'flex';
+  const badge = document.getElementById('project-badge');
+  badge.textContent = p.name + (p.speaker ? ' · '+p.speaker : '') + (p.language ? ' · '+p.language : '');
+  badge.classList.remove('hidden');
+  // open first available book
+  const firstBook = (p.books && p.books.length) ? p.books[0] : allBookKeys()[0];
+  // collapse all categories except the one containing the first book
+  const firstCat = BOOK_INFO[firstBook] ? BOOK_INFO[firstBook].categoryKey : null;
+  collapsedCats = {};
+  Object.keys(CATEGORIES).forEach(catKey=>{
+    if(catKey !== firstCat) collapsedCats[catKey] = true;
+  });
+  buildSidebar();
+  switchBook(firstBook);
+}
+
+function currentProject(){
+  return projects.find(p=>p.id===currentProjectId);
+}
+
+/* ============================================================
+   SIDEBAR (dynamic, category > book hierarchy)
+   ============================================================ */
+
+let collapsedCats = {};
+
+function buildSidebar(){
+  const p = currentProject();
+  const wrap = document.getElementById('sidebar-categories');
+  wrap.innerHTML = '';
+  const projBooks = new Set((p.books && p.books.length) ? p.books : allBookKeys());
+
+  Object.entries(CATEGORIES).forEach(([catKey, cat])=>{
+    const booksInCat = Object.keys(cat.books).filter(b=>projBooks.has(b));
+    if(booksInCat.length===0) return; // skip categories with no selected books
+
+    const section = document.createElement('div');
+    section.className = 'cat-section';
+
+    const header = document.createElement('button');
+    header.className = 'cat-header'+(collapsedCats[catKey]?' collapsed':'');
+    header.innerHTML = `${cat.icon} ${escapeHtml(cat.name)} <span class="chev">&#9660;</span>`;
+    header.onclick = ()=>{
+      collapsedCats[catKey] = !collapsedCats[catKey];
+      buildSidebar();
+    };
+    section.appendChild(header);
+
+    const booksWrap = document.createElement('div');
+    booksWrap.className = 'cat-books'+(collapsedCats[catKey]?' collapsed':'');
+    booksInCat.forEach(bookKey=>{
+      const book = cat.books[bookKey];
+      const btn = document.createElement('button');
+      btn.className = 'book-btn'+(bookKey===APP.currentBook?' active':'');
+      btn.id = 'bb-'+bookKey;
+      const count = countEntries(p, bookKey);
+      btn.innerHTML = `${book.icon} ${escapeHtml(book.name)} <span class="book-count">${count}</span>`;
+      btn.onclick = ()=>switchBook(bookKey);
+      booksWrap.appendChild(btn);
+    });
+    section.appendChild(booksWrap);
+    wrap.appendChild(section);
+  });
+}
+
+function countEntries(p, book){
+  return Object.values(p.responses[book]||{}).filter(r=>r && Object.keys(r).some(k=>{
+    const v = r[k];
+    return v && (typeof v==='string'?v.trim():(Array.isArray(v)?v.length:false));
+  })).length;
+}
+
+/* ============================================================
+   BOOK / PHOTO MANAGEMENT
+   ============================================================ */
+
+function switchBook(book){
+  saveResponse();
+  APP.currentBook = book;
+  APP.currentIndex = -1;
+  const info = BOOK_INFO[book];
+  // ensure the category containing this book is expanded
+  if(info && collapsedCats[info.categoryKey]){
+    collapsedCats[info.categoryKey] = false;
+    buildSidebar();
+  }
+  document.querySelectorAll('.book-btn').forEach(b=>{
+    b.classList.toggle('active', b.id === 'bb-'+book);
+  });
+  const p = currentProject();
+  const photoBased = info ? info.photoBased : true;
+
+  // toggle photo panel vs no-photo panel
+  document.getElementById('photo-img').classList.add('hidden');
+  document.getElementById('photo-empty').classList.remove('hidden');
+  document.getElementById('photo-fname').textContent = '—';
+  document.getElementById('photo-fcount').textContent = '—';
+  document.getElementById('btn-prev').disabled = true;
+  document.getElementById('btn-next').disabled = true;
+
+  const addBtn = document.getElementById('add-photos-btn');
+  const entryListLabelEl = document.getElementById('entry-list-label');
+  if(photoBased){
+    addBtn.classList.remove('hidden');
+    entryListLabelEl.textContent = 'Photos';
+    document.getElementById('photo-empty').querySelector('p').textContent = 'Load photos and select one to start';
+  } else {
+    addBtn.classList.add('hidden');
+    entryListLabelEl.textContent = 'Entries';
+    document.getElementById('photo-empty').querySelector('p').textContent = 'No photos for this category — tap "+ New Entry" to add a response';
+  }
+
+  buildEntryList();
+  document.getElementById('form-inner').innerHTML = '<div class="form-empty">Select an item to start</div>';
+}
+
+function triggerLoadPhotos(){
+  document.getElementById('photo-file-input').click();
+}
+
+function addPhotosToBook(input){
+  const files = Array.from(input.files).filter(f=>f.type.startsWith('image/'));
+  files.sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));
+  const p = currentProject();
+  const book = APP.currentBook;
+  // merge, avoiding duplicate names
+  const existingNames = new Set(p.photos[book].map(f=>f.name));
+  files.forEach(f=>{
+    if(!existingNames.has(f.name)){
+      p.photos[book].push(f);
+      p.photoNames[book].push(f.name);
+      existingNames.add(f.name);
+    }
+  });
+  p.photos[book].sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));
+  buildSidebar();
+  buildEntryList();
+  saveProjects();
+  showToast(p.photos[book].length+' photos in '+(BOOK_INFO[book]?BOOK_INFO[book].name:book));
+  input.value = '';
+}
+
+/* ============================================================
+   ENTRY LIST (handles both photo-based and photo-free books)
+   ============================================================ */
+
+function entryCount(p, book){
+  const info = BOOK_INFO[book];
+  if(info && info.photoBased){
+    return p.photos[book].length;
+  }
+  // photo-free: count = number of response entries created (incl. empty placeholders)
+  return Object.keys(p.responses[book]||{}).length;
+}
+
+function buildEntryList(){
+  const list = document.getElementById('photo-list');
+  const p = currentProject();
+  const book = APP.currentBook;
+  const info = BOOK_INFO[book];
+  list.innerHTML = '';
+
+  if(info && info.photoBased){
+    const photos = p.photos[book];
+    if(!photos.length){
+      list.innerHTML = '<div style="font-size:12px;color:#aaa;padding:8px 6px">No photos loaded — tap "Load / add photos"</div>';
+      return;
+    }
+    photos.forEach((f,i)=>{
+      const hasDone = hasData(book, i);
+      const row = document.createElement('div');
+      row.className = 'pitem-row';
+      const btn = document.createElement('button');
+      btn.className = 'pitem'+(i===APP.currentIndex?' active':'')+(hasDone?' done':'');
+      btn.innerHTML = '<div class="pitem-dot"></div>'+escapeHtml(f.name);
+      btn.onclick = ()=>selectEntry(i);
+      row.appendChild(btn);
+      if(hasDone){
+        const del = document.createElement('button');
+        del.className = 'pitem-del';
+        del.innerHTML = '&#10005;';
+        del.title = 'Delete entry';
+        del.onclick = (e)=>{ e.stopPropagation(); openDeleteEntryModal(book, i, f.name); };
+        row.appendChild(del);
+      }
+      list.appendChild(row);
+    });
+  } else {
+    // photo-free: entries are response objects keyed by index
+    const addBtn = document.createElement('button');
+    addBtn.className = 'add-photos-btn';
+    addBtn.style.margin = '4px 6px 8px';
+    addBtn.innerHTML = '&#10133; New Entry';
+    addBtn.onclick = ()=>addNoPhotoEntry();
+    list.appendChild(addBtn);
+
+    const keys = Object.keys(p.responses[book]||{}).map(Number).sort((a,b)=>a-b);
+    if(keys.length===0){
+      const empty = document.createElement('div');
+      empty.style.cssText = 'font-size:12px;color:#aaa;padding:8px 6px';
+      empty.textContent = 'No entries yet — tap "+ New Entry"';
+      list.appendChild(empty);
+      return;
+    }
+    keys.forEach((idx)=>{
+      const r = p.responses[book][idx];
+      const hasDone = hasData(book, idx);
+      const label = entryLabel(book, r) || ('Entry '+(idx+1));
+      const row = document.createElement('div');
+      row.className = 'pitem-row';
+      const btn = document.createElement('button');
+      btn.className = 'pitem'+(idx===APP.currentIndex?' active':'')+(hasDone?' done':'');
+      btn.innerHTML = '<div class="pitem-dot"></div>'+escapeHtml(label);
+      btn.onclick = ()=>selectEntry(idx);
+      row.appendChild(btn);
+      const del = document.createElement('button');
+      del.className = 'pitem-del';
+      del.innerHTML = '&#10005;';
+      del.title = 'Delete entry';
+      del.onclick = (e)=>{ e.stopPropagation(); openDeleteEntryModal(book, idx, label); };
+      row.appendChild(del);
+      list.appendChild(row);
+    });
+  }
+}
+
+// For photo-free books, derive a readable label from the first text-type answer
+function entryLabel(book, r){
+  if(!r) return '';
+  const qs = QS[book]||[];
+  for(const q of qs){
+    if((q.type==='text') && r[q.id] && r[q.id].trim()){
+      return r[q.id].trim();
+    }
+  }
+  return '';
+}
+
+function addNoPhotoEntry(){
+  saveResponse();
+  const p = currentProject();
+  const book = APP.currentBook;
+  const keys = Object.keys(p.responses[book]||{}).map(Number);
+  const newIdx = keys.length ? Math.max(...keys)+1 : 0;
+  p.responses[book][newIdx] = {};
+  saveProjects();
+  selectEntry(newIdx);
+}
+
+function hasData(book, idx){
+  const p = currentProject();
+  const r = p.responses[book][idx];
+  if(!r) return false;
+  return Object.values(r).some(v=>v&&(typeof v==='string'?v.trim():(Array.isArray(v)?v.length:false)));
+}
+
+function selectEntry(idx){
+  saveResponse();
+  APP.currentIndex = idx;
+  const p = currentProject();
+  const book = APP.currentBook;
+  const info = BOOK_INFO[book];
+
+  if(info && info.photoBased){
+    const photos = p.photos[book];
+    const file = photos[idx];
+    const url = URL.createObjectURL(file);
+    const img = document.getElementById('photo-img');
+    img.onload = ()=>URL.revokeObjectURL(url);
+    img.src = url;
+    img.classList.remove('hidden');
+    document.getElementById('photo-empty').classList.add('hidden');
+    document.getElementById('photo-fname').textContent = file.name;
+    document.getElementById('photo-fcount').textContent = (idx+1)+' / '+photos.length;
+    document.getElementById('btn-prev').disabled = idx===0;
+    document.getElementById('btn-next').disabled = idx===photos.length-1;
+  } else {
+    document.getElementById('photo-img').classList.add('hidden');
+    document.getElementById('photo-empty').classList.remove('hidden');
+    document.getElementById('photo-empty').querySelector('p').textContent = 'No photo for this entry';
+    const keys = Object.keys(p.responses[book]||{}).map(Number).sort((a,b)=>a-b);
+    const pos = keys.indexOf(idx);
+    document.getElementById('photo-fname').textContent = entryLabel(book, p.responses[book][idx]) || ('Entry '+(idx+1));
+    document.getElementById('photo-fcount').textContent = (pos+1)+' / '+keys.length;
+    document.getElementById('btn-prev').disabled = pos<=0;
+    document.getElementById('btn-next').disabled = pos>=keys.length-1;
+  }
+  buildEntryList();
+  buildForm();
+}
+
+
+function prevPhoto(){
+  const p = currentProject();
+  const book = APP.currentBook;
+  const info = BOOK_INFO[book];
+  if(info && info.photoBased){
+    if(APP.currentIndex>0) selectEntry(APP.currentIndex-1);
+  } else {
+    const keys = Object.keys(p.responses[book]||{}).map(Number).sort((a,b)=>a-b);
+    const pos = keys.indexOf(APP.currentIndex);
+    if(pos>0) selectEntry(keys[pos-1]);
+  }
+}
+function nextPhoto(){
+  const p = currentProject();
+  const book = APP.currentBook;
+  const info = BOOK_INFO[book];
+  if(info && info.photoBased){
+    if(APP.currentIndex<p.photos[book].length-1) selectEntry(APP.currentIndex+1);
+  } else {
+    const keys = Object.keys(p.responses[book]||{}).map(Number).sort((a,b)=>a-b);
+    const pos = keys.indexOf(APP.currentIndex);
+    if(pos>=0 && pos<keys.length-1) selectEntry(keys[pos+1]);
+  }
+}
+
+/* ============================================================
+   FORM
+   ============================================================ */
+
+function buildForm(){
+  const p = currentProject();
+  const book = APP.currentBook;
+  const idx = APP.currentIndex;
+  const qs = QS[book];
+  const resp = p.responses[book][idx]||{};
+  const fi = document.getElementById('form-inner');
+  fi.innerHTML = '';
+
+  const sc = document.createElement('div');
+  sc.className = 'form-card';
+  sc.innerHTML = `<div class="card-head">Session Info</div><div class="card-body">
+    <div><div class="flabel">Speaker pseudonym</div><input class="finput" id="f-speaker" placeholder="e.g. SP01" value="${escapeHtml(resp._speaker||p.speaker||'')}"></div>
+    <div><div class="flabel">Date</div><input class="finput" id="f-date" type="date" value="${resp._date||p.date||new Date().toISOString().slice(0,10)}"></div>
+  </div>`;
+  fi.appendChild(sc);
+
+  qs.forEach(q=>{
+    const card = document.createElement('div');
+    card.className = 'form-card';
+    if(q.starting){
+      card.innerHTML = `<div class="card-head" style="background:#fffbea;color:#a07800">&#11088; Starting Question</div>
+      <div class="card-body">
+        <div class="bilingual">${bilingualLabels(book, q)}</div>
+        <textarea class="ftextarea" id="fq-${q.id}" placeholder="${escapeHtml(q.placeholder||'')}">${escapeHtml(resp[q.id]||'')}</textarea>
+      </div>`;
+    } else if(q.type==='text'){
+      card.innerHTML = `<div class="card-head">Q${qs.indexOf(q)+1}</div>
+      <div class="card-body">
+        <div class="bilingual">${bilingualLabels(book, q)}</div>
+        <input class="finput${q.large?' large':''}" id="fq-${q.id}" placeholder="${escapeHtml(q.placeholder||'Response…')}" value="${escapeHtml(resp[q.id]||'')}">
+      </div>`;
+    } else if(q.type==='textarea'){
+      card.innerHTML = `<div class="card-head">Q${qs.indexOf(q)+1}</div>
+      <div class="card-body">
+        <div class="bilingual">${bilingualLabels(book, q)}</div>
+        <textarea class="ftextarea" id="fq-${q.id}" placeholder="${escapeHtml(q.placeholder||'Response…')}">${escapeHtml(resp[q.id]||'')}</textarea>
+      </div>`;
+    } else if(q.type==='radio'){
+      const opts = (q.opts||[]).map(o=>`<label class="ropt${resp[q.id]===o?' selected':''}"><input type="radio" name="rq-${q.id}" value="${escapeHtml(o)}" ${resp[q.id]===o?'checked':''} onchange="this.closest('.radio-group').querySelectorAll('.ropt').forEach(r=>r.classList.remove('selected'));this.closest('.ropt').classList.add('selected')"> ${escapeHtml(o)}</label>`).join('');
+      card.innerHTML = `<div class="card-head">Q${qs.indexOf(q)+1}</div>
+      <div class="card-body">
+        <div class="bilingual">${bilingualLabels(book, q)}</div>
+        <div class="radio-group">${opts}</div>
+      </div>`;
+    } else if(q.type==='checkbox'){
+      const saved = resp[q.id]||[];
+      const allOpts = [...(q.opts||[]), ...(q.customOpts||[])];
+      const cbs = allOpts.map(o=>`<label class="cbopt${saved.includes(o)?' checked':''}"><input type="checkbox" value="${escapeHtml(o)}" ${saved.includes(o)?'checked':''} onchange="this.closest('.cbopt').classList.toggle('checked',this.checked)"> ${escapeHtml(o)}</label>`).join('');
+      card.innerHTML = `<div class="card-head">Q${qs.indexOf(q)+1} <span style="font-size:10px;color:#aaa;font-weight:400">tap to select</span></div>
+      <div class="card-body">
+        <div class="bilingual">${bilingualLabels(book, q)}</div>
+        <div class="cb-group" id="cbg-${q.id}">${cbs}</div>
+        <div class="add-custom-row">
+          <input class="add-custom-input" placeholder="Add custom option…" id="cbi-${q.id}">
+          <button class="add-custom-btn" onclick="addCbOpt(${q.id})">+ Add</button>
+        </div>
+      </div>`;
+    } else if(q.type==='audio'){
+      const key = idx+'_'+q.id;
+      const hasAudio = !!(p.audioBlobs[book] && p.audioBlobs[book][key]);
+      card.innerHTML = `<div class="card-head">&#127908; Audio</div>
+      <div class="card-body">
+        <div class="bilingual">${bilingualLabels(book, q)}</div>
+        <div class="audio-row">
+          <button class="audio-btn" id="abtn-${q.id}" onclick="toggleAudio(${q.id})">&#9679; Record</button>
+          <span class="audio-info" id="ainfo-${q.id}">${hasAudio?'Recording saved':'No recording yet'}</span>
+        </div>
+        <div class="audio-play-row" id="aplay-${q.id}" style="display:${hasAudio?'flex':'none'}">
+          <button class="audio-play-btn" onclick="playAudio(${q.id})">&#9654; Play</button>
+          <button class="audio-play-btn" onclick="deleteAudio(${q.id})">&#128465; Delete</button>
+        </div>
+      </div>`;
+    }
+    fi.appendChild(card);
+  });
+
+  const sb = document.createElement('div');
+  sb.className = 'save-bar';
+  const info = BOOK_INFO[book];
+  const entryName = (info && info.photoBased) ? p.photos[book][idx].name : (entryLabel(book, resp) || ('Entry '+(idx+1)));
+  sb.innerHTML = `<button class="delete-entry-btn" onclick="openDeleteEntryModal('${book}',${idx},'${escapeHtml(entryName)}')">&#128465; Delete entry</button>
+  <div style="display:flex;align-items:center;gap:10px"><span class="saved-msg" id="saved-msg">&#10003; Saved</span><button class="save-btn" onclick="saveAndConfirm()">&#128190; Save Entry</button></div>`;
+  fi.appendChild(sb);
+}
+
+function addCbOpt(qid){
+  const inp = document.getElementById('cbi-'+qid);
+  const val = inp.value.trim();
+  if(!val) return;
+  const q = QS[APP.currentBook].find(q=>q.id===qid);
+  if(!q.customOpts) q.customOpts = [];
+  q.customOpts.push(val);
+  const grp = document.getElementById('cbg-'+qid);
+  const lbl = document.createElement('label');
+  lbl.className = 'cbopt';
+  lbl.innerHTML = `<input type="checkbox" value="${escapeHtml(val)}" onchange="this.closest('.cbopt').classList.toggle('checked',this.checked)"> ${escapeHtml(val)}`;
+  grp.appendChild(lbl);
+  inp.value = '';
+}
+
+function saveResponse(){
+  if(!currentProjectId || APP.currentIndex<0) return;
+  const p = currentProject();
+  const book = APP.currentBook;
+  const idx = APP.currentIndex;
+  const qs = QS[book];
+  if(!p.responses[book][idx]) p.responses[book][idx]={};
+  const r = p.responses[book][idx];
+  const speaker = document.getElementById('f-speaker');
+  const date = document.getElementById('f-date');
+  if(speaker) r._speaker = speaker.value;
+  if(date) r._date = date.value;
+  const bInfo = BOOK_INFO[book];
+  r._photo = (bInfo && bInfo.photoBased) ? (p.photos[book][idx]?.name||'') : '';
+  r._timestamp = new Date().toISOString();
+  qs.forEach(q=>{
+    const el = document.getElementById('fq-'+q.id);
+    if(q.type==='text'||q.type==='textarea'){
+      if(el) r[q.id]=el.value;
+    } else if(q.type==='radio'){
+      const sel = document.querySelector(`input[name="rq-${q.id}"]:checked`);
+      if(sel) r[q.id]=sel.value;
+    } else if(q.type==='checkbox'){
+      const checked = [...(document.querySelectorAll(`#cbg-${q.id} input:checked`)||[])].map(c=>c.value);
+      r[q.id]=checked;
+    }
+  });
+  saveProjects();
+}
+
+function saveAndConfirm(){
+  saveResponse();
+  buildEntryList();
+  const msg = document.getElementById('saved-msg');
+  if(msg){msg.classList.add('show');setTimeout(()=>msg.classList.remove('show'),2000);}
+  showToast('Entry saved ✓');
+}
+
+/* DELETE ENTRY */
+function openDeleteEntryModal(book, idx, name){
+  pendingDeleteEntry = {book, idx};
+  document.getElementById('del-entry-name').textContent = name;
+  document.getElementById('delete-entry-modal').classList.remove('hidden');
+}
+function closeDeleteEntryModal(){
+  document.getElementById('delete-entry-modal').classList.add('hidden');
+  pendingDeleteEntry = null;
+}
+function confirmDeleteEntry(){
+  const p = currentProject();
+  const {book, idx} = pendingDeleteEntry;
+  delete p.responses[book][idx];
+  // delete associated audio
+  if(p.audioBlobs[book]){
+    Object.keys(p.audioBlobs[book]).forEach(key=>{
+      if(key.startsWith(idx+'_')) delete p.audioBlobs[book][key];
+    });
+  }
+  saveProjects();
+  closeDeleteEntryModal();
+  buildEntryList();
+  if(APP.currentIndex===idx) buildForm();
+  showToast('Entry deleted');
+}
+
+/* ============================================================
+   AUDIO
+   ============================================================ */
+
+function toggleAudio(qid){
+  const p = currentProject();
+  const key = APP.currentIndex+'_'+qid;
+  const book = APP.currentBook;
+  const btn = document.getElementById('abtn-'+qid);
+  const info = document.getElementById('ainfo-'+qid);
+  if(!APP.audioMRs[key]){
+    navigator.mediaDevices.getUserMedia({audio:true}).then(stream=>{
+      const chunks = [];
+      const mr = new MediaRecorder(stream);
+      mr.ondataavailable = e=>chunks.push(e.data);
+      mr.onstop = ()=>{
+        if(!p.audioBlobs[book]) p.audioBlobs[book]={};
+        p.audioBlobs[book][key] = new Blob(chunks,{type:'audio/webm'});
+        stream.getTracks().forEach(t=>t.stop());
+        btn.classList.remove('rec');
+        btn.innerHTML = '&#9679; Record';
+        info.textContent = 'Recording saved';
+        const pr = document.getElementById('aplay-'+qid);
+        if(pr) pr.style.display='flex';
+        delete APP.audioMRs[key];
+      };
+      mr.start();
+      APP.audioMRs[key] = mr;
+      btn.classList.add('rec');
+      btn.innerHTML = '&#9632; Stop';
+      info.textContent = 'Recording…';
+    }).catch(()=>showToast('Microphone access needed'));
+  } else {
+    APP.audioMRs[key].stop();
+  }
+}
+
+function playAudio(qid){
+  const p = currentProject();
+  const key = APP.currentIndex+'_'+qid;
+  const blob = p.audioBlobs[APP.currentBook]&&p.audioBlobs[APP.currentBook][key];
+  if(!blob) return;
+  new Audio(URL.createObjectURL(blob)).play();
+}
+
+function deleteAudio(qid){
+  const p = currentProject();
+  const key = APP.currentIndex+'_'+qid;
+  if(p.audioBlobs[APP.currentBook]) delete p.audioBlobs[APP.currentBook][key];
+  const pr = document.getElementById('aplay-'+qid);
+  if(pr) pr.style.display='none';
+  const info = document.getElementById('ainfo-'+qid);
+  if(info) info.textContent='Deleted';
+}
+
+/* ============================================================
+   SCREEN RECORDING
+   ============================================================ */
+
+async function startScreenRec(){
+  try{
+    APP.recStream = await navigator.mediaDevices.getDisplayMedia({video:true,audio:true});
+    const mr = new MediaRecorder(APP.recStream);
+    const chunks = [];
+    mr.ondataavailable = e=>chunks.push(e.data);
+    mr.onstop = ()=>{
+      const blob = new Blob(chunks,{type:'video/webm'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'tek_session_'+new Date().toISOString().slice(0,10)+'.webm';
+      a.click();
+      showToast('Session video saved');
+    };
+    APP.recMR = mr;
+    mr.start();
+    APP.recSeconds = 0;
+    APP.recInterval = setInterval(()=>{
+      APP.recSeconds++;
+      const m = Math.floor(APP.recSeconds/60);
+      const s = APP.recSeconds%60;
+      document.getElementById('rec-time').textContent = m+':'+(s<10?'0':'')+s;
+    },1000);
+    document.getElementById('rec-time').classList.remove('hidden');
+    document.getElementById('start-rec-btn').style.display='none';
+    document.getElementById('screen-btn').style.display='flex';
+    APP.recStream.getVideoTracks()[0].onended = ()=>stopScreenRec();
+  }catch(e){showToast('Screen recording requires permission');}
+}
+
+function stopScreenRec(){
+  if(APP.recMR&&APP.recMR.state!=='inactive') APP.recMR.stop();
+  if(APP.recStream) APP.recStream.getTracks().forEach(t=>t.stop());
+  clearInterval(APP.recInterval);
+  document.getElementById('rec-time').classList.add('hidden');
+  document.getElementById('start-rec-btn').style.display='flex';
+  document.getElementById('screen-btn').style.display='none';
+}
+
+/* ============================================================
+   QUESTION BUILDER
+   ============================================================ */
+
+let qTabCurrent = 'plants';
+function openQBuilder(){
+  const p = currentProject();
+  const projBooks = (p && p.books && p.books.length) ? p.books : allBookKeys();
+  if(!projBooks.includes(qTabCurrent)) qTabCurrent = projBooks[0];
+  const tabsWrap = document.getElementById('q-modal-tabs');
+  tabsWrap.innerHTML = '';
+  projBooks.forEach(bookKey=>{
+    const info = BOOK_INFO[bookKey];
+    const btn = document.createElement('button');
+    btn.className = 'mtab'+(bookKey===qTabCurrent?' active':'');
+    btn.id = 'mt-'+bookKey;
+    btn.innerHTML = (info?info.icon:'') + ' ' + (info?escapeHtml(info.name):bookKey);
+    btn.onclick = ()=>switchQTab(bookKey);
+    tabsWrap.appendChild(btn);
+  });
+  document.getElementById('q-modal').classList.remove('hidden');
+  renderQList();
+}
+function closeQBuilder(){ document.getElementById('q-modal').classList.add('hidden'); cancelEditQuestion(); }
+function switchQTab(tab){
+  qTabCurrent = tab;
+  cancelEditQuestion();
+  document.querySelectorAll('.mtab').forEach(b=>b.classList.toggle('active', b.id==='mt-'+tab));
+  renderQList();
+}
+function renderQList(){
+  const list = document.getElementById('q-list-build');
+  const qs = QS[qTabCurrent];
+  list.innerHTML = '';
+  qs.forEach((q,i)=>{
+    const d = document.createElement('div');
+    d.className = 'qb-item';
+    d.innerHTML = `<div class="qb-item-text">${escapeHtml(q.hindi||q.garhwali)}</div>
+    <span class="qb-item-type">${q.type}</span>
+    <button class="qb-edit" onclick="startEditQuestion('${qTabCurrent}',${i})" title="Edit question">&#9998;</button>
+    <button class="qb-del" onclick="openDeleteQuestionModal('${qTabCurrent}',${i})" title="Delete question">&#10005;</button>`;
+    list.appendChild(d);
+  });
+}
+let pendingDeleteQuestion = null; // {book, idx}
+function openDeleteQuestionModal(book, idx){
+  pendingDeleteQuestion = {book, idx};
+  const q = QS[book][idx];
+  document.getElementById('del-question-name').textContent = q ? (q.hindi||q.garhwali) : 'this question';
+  document.getElementById('delete-question-modal').classList.remove('hidden');
+}
+function closeDeleteQuestionModal(){
+  document.getElementById('delete-question-modal').classList.add('hidden');
+  pendingDeleteQuestion = null;
+}
+function confirmDeleteQuestion(){
+  const {book, idx} = pendingDeleteQuestion;
+  if(editingQuestion && editingQuestion.book===book && editingQuestion.idx===idx) cancelEditQuestion();
+  QS[book].splice(idx,1);
+  saveQuestions();
+  closeDeleteQuestionModal();
+  renderQList();
+  if(book===APP.currentBook && APP.currentIndex>=0) buildForm();
+}
+function toggleOptsArea(){
+  const t = document.getElementById('aq-type').value;
+  document.getElementById('aq-opts-area').classList.toggle('hidden', t!=='radio'&&t!=='checkbox');
+}
+let editingQuestion = null; // {book, idx}
+function startEditQuestion(book, idx){
+  editingQuestion = {book, idx};
+  const q = QS[book][idx];
+  document.getElementById('aq-text').value = q.hindi||q.garhwali||'';
+  document.getElementById('aq-type').value = q.type;
+  document.getElementById('aq-opts').value = (q.opts||[]).join('\n');
+  toggleOptsArea();
+  document.getElementById('aq-heading').textContent = 'Edit question';
+  document.getElementById('aq-submit-btn').textContent = '✓ Update Question';
+  document.getElementById('aq-cancel-btn').classList.remove('hidden');
+  document.getElementById('aq-text').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+function cancelEditQuestion(){
+  editingQuestion = null;
+  document.getElementById('aq-text').value='';
+  document.getElementById('aq-opts').value='';
+  document.getElementById('aq-type').value='text';
+  toggleOptsArea();
+  document.getElementById('aq-heading').textContent = 'Add new question';
+  document.getElementById('aq-submit-btn').textContent = '+ Add Question';
+  document.getElementById('aq-cancel-btn').classList.add('hidden');
+}
+function addQuestion(){
+  const text = document.getElementById('aq-text').value.trim();
+  const type = document.getElementById('aq-type').value;
+  if(!text){ showToast('Please enter question text'); return; }
+  const opts = type==='radio'||type==='checkbox'
+    ? document.getElementById('aq-opts').value.split('\n').map(s=>s.trim()).filter(Boolean)
+    : undefined;
+  if(editingQuestion && editingQuestion.book===qTabCurrent){
+    const q = QS[qTabCurrent][editingQuestion.idx];
+    q.hindi = text; q.garhwali = text; q.type = type; q.opts = opts;
+    cancelEditQuestion();
+    saveQuestions();
+    renderQList();
+    if(qTabCurrent===APP.currentBook && APP.currentIndex>=0) buildForm();
+    showToast('Question updated ✓');
+    return;
+  }
+  const maxId = Math.max(0,...QS[qTabCurrent].map(q=>q.id)) + 1;
+  QS[qTabCurrent].push({id:maxId, hindi:text, garhwali:text, type, opts});
+  document.getElementById('aq-text').value='';
+  document.getElementById('aq-opts').value='';
+  saveQuestions();
+  renderQList();
+  showToast('Question added ✓');
+}
+
+/* Persist QS customizations (add/edit/delete) across reloads */
+const QUESTIONS_STORAGE_KEY = 'tek_questions_v1';
+function saveQuestions(){
+  localStorage.setItem(QUESTIONS_STORAGE_KEY, JSON.stringify(QS));
+}
+function loadQuestions(){
+  try{
+    const raw = localStorage.getItem(QUESTIONS_STORAGE_KEY);
+    if(raw){
+      const saved = JSON.parse(raw);
+      Object.keys(saved).forEach(book=>{ if(QS[book]) QS[book] = saved[book]; });
+    }
+  }catch(e){ /* fall back to built-in defaults */ }
+}
+
+/* ============================================================
+   EXPORT
+   ============================================================ */
+
+function exportCSV(){
+  saveResponse();
+  const p = currentProject();
+  const projBooks = (p.books && p.books.length) ? p.books : allBookKeys();
+
+  projBooks.forEach(book=>{
+    const entries = Object.entries(p.responses[book]||{}).filter(([,r])=>r);
+    if(entries.length===0) return;
+    const qs = QS[book]||[];
+    const headers = [];
+    qs.forEach(q=>{ if(!headers.includes(q.hindi)) headers.push(q.hindi); });
+
+    let csv = 'Project,Language,Book,Photo,Speaker,Date,'+headers.map(h=>'"'+h.replace(/"/g,'""')+'"').join(',')+'\n';
+    entries.forEach(([idx,r])=>{
+      const row = [p.name, p.language||'', BOOK_INFO[book]?BOOK_INFO[book].name:book, r._photo||'', r._speaker||'', r._date||''];
+      let line = row.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',');
+      headers.forEach(h=>{
+        const q = qs.find(q=>q.hindi===h);
+        let val = '';
+        if(q){
+          const v = r[q.id];
+          if(Array.isArray(v)) val = v.join('|');
+          else val = v||'';
+        }
+        line += ',"'+String(val).replace(/"/g,'""')+'"';
+      });
+      csv += line+'\n';
+    });
+
+    const blob = new Blob([csv],{type:'text/csv'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'elicit_'+p.name.replace(/[^a-z0-9]+/gi,'_')+'_'+book+'_'+new Date().toISOString().slice(0,10)+'.csv';
+    a.click();
+  });
+  showToast('CSV exported ✓');
+}
+
+/* ============================================================
+   UTIL
+   ============================================================ */
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+window.addEventListener('keydown', e=>{
+  if(document.getElementById('main').classList.contains('hidden')) return;
+  if(e.key==='ArrowRight') nextPhoto();
+  if(e.key==='ArrowLeft') prevPhoto();
+});
+
+/* INIT */
+loadQuestions();
+loadProjects();
+renderProjectGrid();
+
+if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js").then(()=>console.log("SW ok")).catch(e=>console.log(e));}
+</script>
+</body>
+</html>

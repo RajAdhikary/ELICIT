@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use ELICIT in your research, please cite it as below."
+title: "ELICIT: An offline tool for structured photo elicitation in language documentation"
+type: software
+authors:
+  - family-names: Adhikary
+    given-names: Raj
+    affiliation: University of Florida
+version: 0.1.0
+date-released: 2026-11-16
+license: MIT
+repository-code: "https://github.com/RajAdhikary/ELICIT"
+keywords:
+  - language documentation
+  - elicitation
+  - fieldwork
+  - ecolinguistics
+  - Garhwali
